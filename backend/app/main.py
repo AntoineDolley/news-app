@@ -1,9 +1,9 @@
-from fastapi import FastAPI, Depends
-from . import models, schemas, crud, database
-from sqlalchemy.orm import Session
+from fastapi import FastAPI
+from .routers import news, users, subjects
 
 app = FastAPI()
 
-@app.get("/news/")
-def read_news():
-    return {"message": "This is the news API"}
+# Inclusion des routeurs
+app.include_router(news.router)
+app.include_router(users.router)
+app.include_router(subjects.router)
