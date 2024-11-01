@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from typing import List
-from .. import schemas, crud
-from ..dependencies import get_db
-from ..utils.fetch_news import fetch_news
+from backend.app import schemas, crud
+from backend.app.dependencies import get_db
+from backend.app.utils.fetch_news import fetch_news
 
 router = APIRouter()
 
-@router.get("/news", response_model=List[schemas.Article])
+@router.get("/", response_model=List[schemas.Article])
 def read_news(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)) -> List[schemas.Article]:
     """
     Retrieve a list of recent news articles.
@@ -20,10 +20,15 @@ def read_news(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)) -> 
     Returns:
         List[schemas.Article]: A list of articles with titles, summaries, publication dates, and URLs.
     """
-    articles = crud.get_articles(db, skip=skip, limit=limit)
+    try :
+        articles = crud.get_articles(db, skip=skip, limit=limit)
+
+    except :
+        return []  # Renvoie une liste vide si aucun article n'est trouvé
+
     return articles
 
-@router.get("/news/search", response_model=List[schemas.Article])
+@router.get("/search", response_model=List[schemas.Article])
 def search_news(q: str, db: Session = Depends(get_db)) -> List[schemas.Article]:
     """
     Search for news articles by a given keyword.

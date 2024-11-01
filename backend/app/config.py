@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     NEWS_API_KEY: str
 
     class Config:
-        env_file = ".env"  # Chargement des variables d'environnement depuis un fichier .env
+        env_file = "../.env"  # Chargement des variables d'environnement depuis un fichier .env
 
 # Instanciation de la configuration globale
 settings = Settings()

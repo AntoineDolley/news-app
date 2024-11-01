@@ -1,10 +1,13 @@
 # tests/conftest.py
 
+import os
+os.environ["TESTING"] = "1"
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from backend.app.database import Base
-from backend.app.dependencies import get_db
+from app.database import Base
+from app.dependencies import get_db
 
 # Utiliser une base de données SQLite en mémoire pour les tests
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"

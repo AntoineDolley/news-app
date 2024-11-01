@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Table
 from sqlalchemy.orm import relationship
-from .database import Base
+from backend.app.database import Base
 
 # Table d'association entre les utilisateurs et les sujets
 user_subject_association = Table(

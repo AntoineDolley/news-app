@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 class SubjectBase(BaseModel):
     """
@@ -102,3 +102,23 @@ class User(UserBase):
 
     class Config:
         orm_mode = True  # Active la compatibilité avec SQLAlchemy
+
+class Token(BaseModel):
+    """
+    Schéma pour le token d'authentification renvoyé par l'API lors de la connexion.
+
+    Attributes:
+        access_token (str): Le token JWT d'accès.
+        token_type (str): Le type de token (par ex., "bearer").
+    """
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    """
+    Schéma pour stocker les données du token d'authentification.
+
+    Attributes:
+        username (Optional[str]): Nom d'utilisateur extrait du token JWT.
+    """
+    username: Optional[str] = None
