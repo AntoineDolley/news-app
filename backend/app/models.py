@@ -39,6 +39,7 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     hashed_password = Column(String)
     last_connection = Column(DateTime)
+    email = Column(String, unique=True, index=True)
     liked_subjects = relationship(
         'Subject',
         secondary=user_subject_association,

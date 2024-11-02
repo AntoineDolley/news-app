@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from backend.app.utils.fetch_news import fetch_news
+from backend.app.utils.fetch_news import fetch_news_by_keyword
 from backend.app import crud, models, schemas
 from datetime import datetime
 
@@ -25,7 +25,7 @@ def check_for_updates(user_id: int, db: Session) -> None:
     if user:
         for subject in user.liked_subjects:
             # Fetch latest articles related to the subject's name
-            articles_data = fetch_news(subject.name)
+            articles_data = fetch_news_by_keyword(subject.name)
             for article_data in articles_data:
                 # Create an ArticleCreate schema from the fetched data
                 article_create = schemas.ArticleCreate(**article_data)
@@ -37,3 +37,4 @@ def check_for_updates(user_id: int, db: Session) -> None:
         # Update the user's last connection time to the current time
         user.last_connection = datetime.utcnow()
         db.commit()
+

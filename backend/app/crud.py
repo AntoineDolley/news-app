@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Type
 from backend.app import models, schemas
+from backend.app.models import Article
 from backend.app.utils.auth import get_password_hash, verify_password
 from datetime import datetime
 
@@ -16,6 +17,19 @@ def get_user_by_name(db: Session, user_name: str) -> Optional[models.User]:
         Optional[models.User]: The user object if found, otherwise None.
     """
     return db.query(models.User).filter(models.User.username == user_name).first()
+
+def get_user_by_email(db: Session, email: str) -> Optional[models.User]:
+    """
+    Retrieve a user by their email.
+
+    Parameters:
+        db (Session): The database session.
+        email (str): The email of the user.
+
+    Returns:
+        Optional[models.User]: The user object if found, otherwise None.
+    """
+    return db.query(models.User).filter(models.User.email == email).first()
 
 def create_user(db: Session, user: schemas.UserCreate) -> models.User:
     """
@@ -106,7 +120,7 @@ def remove_subject_from_user(db: Session, user: models.User, subject: models.Sub
         db.refresh(user)
     return user
 
-def get_articles(db: Session, skip: int = 0, limit: int = 100) -> List[models.Article]:
+def get_articles(db: Session, skip: int = 0, limit: int = 100) -> list[Type[Article]]:
     """
     Retrieve a list of articles with pagination.
 

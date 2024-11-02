@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import List, Dict
 from backend.app.config import settings
 
-def fetch_news(keyword: str) -> List[Dict[str, str]]:
+def fetch_news_by_keyword(keyword: str) -> List[Dict[str, str]]:
     """
     Fetch news articles related to a given keyword using an external news API.
 
@@ -25,7 +25,6 @@ def fetch_news(keyword: str) -> List[Dict[str, str]]:
     params = {
         'q': keyword,
         'apiKey': settings.NEWS_API_KEY,
-        'language': 'fr'  # Pour obtenir des articles en français
     }
     response = requests.get(url, params=params)
     articles_data = []
@@ -35,7 +34,7 @@ def fetch_news(keyword: str) -> List[Dict[str, str]]:
         for item in data.get('articles', []):
             article = {
                 'title': item.get('title'),
-                'summary': item.get('description'),
+                'summary': item.get('description') or 'Résumé indisponible',
                 'published_at': datetime.strptime(item.get('publishedAt'), '%Y-%m-%dT%H:%M:%SZ').isoformat(),
                 'url': item.get('url'),
                 'subjects': [keyword]
@@ -44,4 +43,31 @@ def fetch_news(keyword: str) -> List[Dict[str, str]]:
     else:
         response.raise_for_status()  # Raises an error if the request was unsuccessful
 
+    return articles_data
+
+def fetch_latest_news():
+    """
+    Récupère les dernières actualités générales sans mot-clé spécifique.
+
+    Returns:
+        list: Liste de dictionnaires contenant les informations des articles.
+    """
+    url = "https://newsapi.org/v2/top-headlines"
+    params = {
+        'apiKey': settings.NEWS_API_KEY,
+        'country': 'us'
+    }
+    response = requests.get(url, params=params)
+    articles_data = []
+    if response.status_code == 200:
+        data = response.json()
+        for item in data.get('articles', []):
+            article = {
+                'title': item.get('title'),
+                'summary': item.get('description') or 'Résumé indisponible',
+                'published_at': datetime.strptime(item.get('publishedAt'), '%Y-%m-%dT%H:%M:%SZ'),
+                'url': item.get('url'),
+                'subjects': []  # Pas de sujets spécifiques
+            }
+            articles_data.append(article)
     return articles_data

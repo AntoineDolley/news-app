@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from backend.app import schemas, crud
 from backend.app.dependencies import get_db
-from backend.app.utils.fetch_news import fetch_news
+from backend.app.utils.fetch_news import fetch_latest_news
 
 router = APIRouter()
 
@@ -22,29 +22,28 @@ def read_news(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)) -> 
     """
     try :
         articles = crud.get_articles(db, skip=skip, limit=limit)
-
     except :
         return []  # Renvoie une liste vide si aucun article n'est trouvé
 
     return articles
 
-@router.get("/search", response_model=List[schemas.Article])
-def search_news(q: str, db: Session = Depends(get_db)) -> List[schemas.Article]:
-    """
-    Search for news articles by a given keyword.
 
-    Parameters:
-        q (str): The search keyword.
-        db (Session): The database session dependency.
+
+@router.get("/refresh", response_model=List[schemas.Article])
+def latest_news(db: Session = Depends(get_db)):
+    """
+    Récupère les dernières actualités générales.
 
     Returns:
-        List[schemas.Article]: A list of articles matching the search keyword.
+        List[schemas.Article]: Liste des articles récents.
     """
-    articles_data = fetch_news(q)
+    articles_data = fetch_latest_news()
+
     articles = []
     for article_data in articles_data:
         # Create an ArticleCreate object and store it in the database if it doesn't already exist
         article_create = schemas.ArticleCreate(**article_data)
         db_article = crud.create_article(db, article_create)
         articles.append(db_article)
+
     return articles

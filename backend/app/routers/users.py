@@ -9,7 +9,7 @@ from backend.app.utils.auth import create_access_token
 
 router = APIRouter()
 
-@router.post("/users/register", response_model=schemas.User)
+@router.post("/register", response_model=schemas.User)
 def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)) -> schemas.User:
     """
     Register a new user with a unique username and email.
@@ -25,7 +25,7 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)) -> sc
         HTTPException: If the username or email is already in use.
     """
     # Vérifie si le nom d'utilisateur existe déjà
-    db_user = crud.get_user_by_name(db, username=user.username)
+    db_user = crud.get_user_by_name(db, user_name=user.username)
     if db_user:
         raise HTTPException(status_code=400, detail="Nom d'utilisateur déjà enregistré")
     # Vérifie si l'email existe déjà
@@ -34,7 +34,7 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)) -> sc
         raise HTTPException(status_code=400, detail="Email déjà enregistré")
     return crud.create_user(db=db, user=user)
 
-@router.post("/users/login", response_model=schemas.Token)
+@router.post("/login", response_model=schemas.Token)
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)) -> schemas.Token:
     """
     Authenticate a user and return an access token for API access.

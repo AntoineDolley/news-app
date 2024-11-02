@@ -75,8 +75,11 @@ class UserBase(BaseModel):
 
     Attributes:
         user_name (str): Nom d'utilisateur unique.
+        email (EmailStr): Adresse e-mail de l'utilisateur.
     """
-    user_name: str
+    username: str
+    email: EmailStr
+
 
 class UserCreate(UserBase):
     """
@@ -85,7 +88,7 @@ class UserCreate(UserBase):
     Attributes:
         user_password (str): Mot de passe de l'utilisateur.
     """
-    user_password: str
+    password: str
 
 class User(UserBase):
     """

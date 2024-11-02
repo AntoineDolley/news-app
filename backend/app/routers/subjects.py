@@ -3,10 +3,11 @@ from sqlalchemy.orm import Session
 from typing import List
 from backend.app import schemas, crud
 from backend.app.dependencies import get_db
+from backend.app.utils.fetch_news import fetch_news_by_keyword
 
 router = APIRouter()
 
-@router.post("/subjects/follow", response_model=schemas.User)
+@router.post("/follow", response_model=schemas.User)
 def follow_subject(user_name: str, subject_name: str, db: Session = Depends(get_db)) -> schemas.User:
     """
     Follow a subject for a given user.
@@ -31,7 +32,7 @@ def follow_subject(user_name: str, subject_name: str, db: Session = Depends(get_
     user = crud.add_subject_to_user(db, user, subject)
     return user
 
-@router.delete("/subjects/follow", response_model=schemas.User)
+@router.delete("/follow", response_model=schemas.User)
 def unfollow_subject(user_name: str, subject_name: str, db: Session = Depends(get_db)) -> schemas.User:
     """
     Unfollow a subject for a given user.
@@ -56,7 +57,7 @@ def unfollow_subject(user_name: str, subject_name: str, db: Session = Depends(ge
     user = crud.remove_subject_from_user(db, user, subject)
     return user
 
-@router.get("/subjects/followed", response_model=List[schemas.Subject])
+@router.get("/followed", response_model=List[schemas.Subject])
 def get_followed_subjects(user_name: str, db: Session = Depends(get_db)) -> List[schemas.Subject]:
     """
     Retrieve a list of subjects followed by a given user.
@@ -75,3 +76,24 @@ def get_followed_subjects(user_name: str, db: Session = Depends(get_db)) -> List
     if not user:
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
     return user.liked_subjects
+
+@router.get("/search", response_model=List[schemas.Article])
+def search_news(q: str, db: Session = Depends(get_db)) -> List[schemas.Article]:
+    """
+    Search for news articles by a given keyword.
+
+    Parameters:
+        q (str): The search keyword.
+        db (Session): The database session dependency.
+
+    Returns:
+        List[schemas.Article]: A list of articles matching the search keyword.
+    """
+    articles_data = fetch_news_by_keyword(q)
+    articles = []
+    for article_data in articles_data:
+        # Create an ArticleCreate object and store it in the database if it doesn't already exist
+        article_create = schemas.ArticleCreate(**article_data)
+        db_article = crud.create_article(db, article_create)
+        articles.append(db_article)
+    return articles

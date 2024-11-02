@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from backend.app.config import settings
 
 SQLALCHEMY_DATABASE_URL = (
-    "sqlite:///:memory:"
+    "sqlite:///C:\\Users\\antoine\\Desktop\\news-app\\database\\news.db"
 )
 
 engine = create_engine(
