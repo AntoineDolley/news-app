@@ -1,0 +1,22 @@
+/* App.css */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  color: #1B065E;
+  text-align: center;
+  margin-top: 20px;
+}
+
+a {
+  color: #17BEBB;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}

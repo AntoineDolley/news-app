@@ -20,15 +20,10 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)) -> sc
 
     Returns:
         schemas.User: The newly created user with username, email, and other details.
-
-    Raises:
-        HTTPException: If the username or email is already in use.
     """
-    # Vérifie si le nom d'utilisateur existe déjà
     db_user = crud.get_user_by_name(db, user_name=user.username)
     if db_user:
         raise HTTPException(status_code=400, detail="Nom d'utilisateur déjà enregistré")
-    # Vérifie si l'email existe déjà
     db_user = crud.get_user_by_email(db, email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email déjà enregistré")

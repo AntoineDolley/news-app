@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from backend.app.routers import news, users, subjects
 
 # Initialisation de l'application FastAPI
@@ -7,6 +9,15 @@ app = FastAPI(
     description="Une API pour accéder aux dernières nouvelles et gérer les utilisateurs et leurs sujets suivis.",
     version="1.0.0"
 )
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Autoriser les requêtes depuis le frontend React
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # Route de base pour vérifier l'état de l'API
 @app.get("/")
