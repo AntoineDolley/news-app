@@ -2,7 +2,7 @@ from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from typing import Union
-from backend.app.config import settings
+from app.config import settings
 
 # Initialisation du contexte pour le hachage de mot de passe
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

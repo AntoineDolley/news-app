@@ -2,9 +2,9 @@ from fastapi import Depends, HTTPException, status
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordBearer
-from backend.app import schemas, models, crud
-from backend.app.database import SessionLocal
-from backend.app.config import settings
+from app import schemas, models, crud
+from app.database import SessionLocal
+from app.config import settings
 
 def get_db() -> Session:
     """

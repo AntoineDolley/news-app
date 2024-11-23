@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional, Union, Type
-from backend.app import models, schemas
-from backend.app.models import Article
-from backend.app.utils.auth import get_password_hash, verify_password
+from app import models, schemas
+from app.models import Article
+from app.utils.auth import get_password_hash, verify_password
 from datetime import datetime
 
 def get_user_by_name(db: Session, user_name: str) -> Optional[models.User]:

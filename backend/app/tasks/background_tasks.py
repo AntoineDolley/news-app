@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from backend.app.utils.fetch_news import fetch_news_by_keyword
-from backend.app import crud, models, schemas
+from app.utils.fetch_news import fetch_news_by_keyword
+from app import crud, models, schemas
 from datetime import datetime
 
 def check_for_updates(user_id: int, db: Session) -> None:
