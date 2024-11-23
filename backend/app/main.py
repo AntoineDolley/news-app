@@ -1,7 +1,13 @@
 from fastapi import FastAPI
-from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import news, users, subjects
+from .routers.news import router as news_router
+from .routers.users import router as users_router
+from .routers.subjects import router as subjects_router
+
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # Initialisation de l'application FastAPI
 app = FastAPI(
@@ -30,7 +36,7 @@ async def root():
     """
     return {"message": "Bienvenue sur l'API de News App. L'API est en ligne."}
 
-# Inclusion des routeurs pour organiser les endpoints par fonctionnalité
-app.include_router(news.router, prefix="/news", tags=["News"])
-app.include_router(users.router, prefix="/users", tags=["Users"])
-app.include_router(subjects.router, prefix="/subjects", tags=["Subjects"])
+print("ajout des routes")
+app.include_router(news_router, prefix="/news", tags=["News"])
+app.include_router(users_router, prefix="/users", tags=["Users"])
+app.include_router(subjects_router, prefix="/subjects", tags=["Subjects"])

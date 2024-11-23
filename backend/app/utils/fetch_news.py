@@ -1,7 +1,7 @@
 import requests
 from datetime import datetime
 from typing import List, Dict
-from app.config import settings
+from ..config import settings
 
 def fetch_news_by_keyword(keyword: str) -> List[Dict[str, str]]:
     """

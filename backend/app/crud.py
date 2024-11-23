@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional, Union, Type
-from app import models, schemas
-from app.models import Article
-from app.utils.auth import get_password_hash, verify_password
+from . import models, schemas
+from .models import Article
+from .utils.auth import get_password_hash, verify_password
 from datetime import datetime
 
 def get_user_by_name(db: Session, user_name: str) -> Optional[models.User]:
@@ -120,7 +120,7 @@ def remove_subject_from_user(db: Session, user: models.User, subject: models.Sub
         db.refresh(user)
     return user
 
-def get_articles(db: Session, skip: int = 0, limit: int = 100) -> list[Type[Article]]:
+def get_articles(db: Session, skip: int = 0, limit: int = 100) -> List[models.Article]:
     """
     Retrieve a list of articles with pagination.
 

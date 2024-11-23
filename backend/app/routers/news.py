@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from typing import List
-from app import schemas, crud
-from app.dependencies import get_db
-from app.utils.fetch_news import fetch_latest_news
+from .. import schemas, crud
+from ..dependencies import get_db
+from ..utils.fetch_news import fetch_latest_news
 
 router = APIRouter()
 
