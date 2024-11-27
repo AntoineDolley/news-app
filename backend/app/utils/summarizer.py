@@ -1,10 +1,10 @@
-from langchain import OpenAI
-from langchain import PromptTemplate
+from langchain_openai import OpenAI
+from langchain_core.prompts import PromptTemplate
 from ..config import settings
 import os
 
 # Initialiser le modèle OpenAI
-openai_api_key = settings.OPENAI_API_KEY  # Remplacez par votre clé OpenAI
+openai_api_key = settings.OPENAI_API_KEY 
 llm = OpenAI(temperature=0.9, openai_api_key=openai_api_key)
 
 def generate_summary(text: str) -> str:
@@ -19,8 +19,8 @@ def generate_summary(text: str) -> str:
     """
     # Modèle de prompt pour le résumé
     template = """
-    Please write a one sentence summary of the following text:
-
+    Summarize the following text:
+    
     {text}
     """
 

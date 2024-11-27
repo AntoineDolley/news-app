@@ -9,8 +9,6 @@ services:
       - ./database/news.db:/app/news.db  
     environment:
       DATABASE_URL: "sqlite:////app/news.db"
-      SECRET_KEY: "news_app_2024"
-      NEWS_API_KEY: "c05f140b4860486cba5633ca73c2f014"
 
   frontend:
     build:

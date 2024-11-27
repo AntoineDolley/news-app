@@ -10,3 +10,7 @@ pydantic-settings
 fastapi[standard]
 requests
 langchain
+langchain-core
+langchain-community
+openai
+langchain-openai
