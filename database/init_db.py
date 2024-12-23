@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Table
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Table, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -13,7 +13,7 @@ def initialize_database():
 if __name__ == "__main__":
 
     engine = create_engine(
-        "sqlite:///C:\\Users\\antoine\\Desktop\\news-app\\database\\news.db",
+        "sqlite:///.\\news.db",
         connect_args={"check_same_thread": False}
     )
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -107,12 +107,13 @@ if __name__ == "__main__":
         title = Column(String)
         summary = Column(String)
         published_at = Column(DateTime)
-        url = Column(String)
+        url = Column(String, unique=True, index=True)
         subjects = relationship(
             'Subject',
             secondary=article_subject_association,
             back_populates='articles'
         )
-
-
+        __table_args__ = (
+            UniqueConstraint('url', name='unique_article_url'),
+        )
     initialize_database()

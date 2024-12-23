@@ -2,9 +2,11 @@ import requests
 from datetime import datetime
 from typing import List, Dict
 from ..config import settings
-from ..utils.summarizer import generate_summary
+from ..utils.summarizer import generate_summary_async
+import asyncio
+import time
 
-def fetch_news_by_keyword(keyword: str) -> List[Dict[str, str]]:
+async def fetch_news_by_keyword(keyword: str) -> List[Dict[str, str]]:
     """
     Fetch news articles related to a given keyword using an external news API.
 
@@ -32,23 +34,39 @@ def fetch_news_by_keyword(keyword: str) -> List[Dict[str, str]]:
 
     if response.status_code == 200:
         data = response.json()
-        for item in data.get('articles', []):
+        
+        # Filtrer les articles invalides dès le début
+        valid_articles = [
+            item for item in data.get('articles', [])
+            if item.get('title') and item['title'] != "[Removed]" and item.get('description')
+        ]
 
-            summary = generate_summary(item.get('content', ''))  
+        # Créer une tâche pour générer un résumé pour chaque description valide
+        tasks = [generate_summary_async(item['description']) for item in valid_articles]
+
+        start_time = time.time()  # Début du timer
+        # Exécution parallèle des résumés
+        summaries = await asyncio.gather(*tasks)
+        end_time = time.time()  # Fin du timer
+        elapsed_time = end_time - start_time
+        print(f"Tout Résumé généré en {elapsed_time:.2f} secondes")  # Affiche le temps écoulé
+
+        for item, summary in zip(valid_articles, summaries):
             article = {
-                'title': item.get('title'),
-                'summary': summary or 'Résumé indisponible',
-                'published_at': datetime.strptime(item.get('publishedAt'), '%Y-%m-%dT%H:%M:%SZ').isoformat(),
-                'url': item.get('url'),
+                'title': item['title'],
+                'summary': summary,  # Utilise le résumé généré
+                'published_at': datetime.strptime(item['publishedAt'], '%Y-%m-%dT%H:%M:%SZ').isoformat(),
+                'url': item['url'],
                 'subjects': [keyword]
             }
             articles_data.append(article)
+
     else:
         response.raise_for_status()  # Raises an error if the request was unsuccessful
 
     return articles_data
 
-def fetch_latest_news():
+async def fetch_latest_news():
     """
     Récupère les dernières actualités générales sans mot-clé spécifique.
 
@@ -64,9 +82,23 @@ def fetch_latest_news():
     articles_data = []
     if response.status_code == 200:
         data = response.json()
-        for item in data.get('articles', []):
+        # Filtrer les articles invalides dès le début
+        valid_articles = [
+            item for item in data.get('articles', [])
+            if item.get('title') and item['title'] != "[Removed]" and item.get('description')
+        ]
 
-            summary = generate_summary(item.get('content', ''))
+        # Créer une tâche pour générer un résumé pour chaque description valide
+        tasks = [generate_summary_async(item['description']) for item in valid_articles]
+
+        start_time = time.time()  # Début du timer
+        # Exécution parallèle des résumés
+        summaries = await asyncio.gather(*tasks)
+        end_time = time.time()  # Fin du timer
+        elapsed_time = end_time - start_time
+        print(f"Tout Résumé généré en {elapsed_time:.2f} secondes")  # Affiche le temps écoulé
+
+        for item, summary in zip(data.get('articles', []), summaries):
             article = {
                 'title': item.get('title'),
                 'summary': summary or 'Résumé indisponible',
@@ -75,4 +107,7 @@ def fetch_latest_news():
                 'subjects': []  # Pas de sujets spécifiques
             }
             articles_data.append(article)
+    else : 
+        response.raise_for_status()
+
     return articles_data

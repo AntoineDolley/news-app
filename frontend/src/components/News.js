@@ -1,3 +1,4 @@
+// src/components/News.js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Search from './Search';
@@ -10,7 +11,11 @@ const News = () => {
     const fetchNews = async () => {
       try {
         const response = await axios.get('http://localhost:8000/news');
-        setArticles(response.data);
+        // Trier les articles par date de publication décroissante
+        const sortedArticles = response.data.sort(
+          (a, b) => new Date(b.published_at) - new Date(a.published_at)
+        );
+        setArticles(sortedArticles);
       } catch (error) {
         console.error(error);
       }
@@ -28,7 +33,8 @@ const News = () => {
           <li key={article.id} className="news-item">
             <h2>{article.title}</h2>
             <p>{article.summary}</p>
-            <a href={article.url} target="_blank" rel="noopener noreferrer">Read more</a>
+            <p><em>Publié le : {new Date(article.published_at).toLocaleString()}</em></p>
+            <a href={article.url} target="_blank" rel="noopener noreferrer">Lire la suite</a>
           </li>
         ))}
       </ul>

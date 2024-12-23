@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Table
+from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import relationship
 from .database import Base
 
@@ -91,9 +92,12 @@ class Article(Base):
     title = Column(String)
     summary = Column(String)
     published_at = Column(DateTime)
-    url = Column(String)
+    url = Column(String, unique=True, index=True)
     subjects = relationship(
         'Subject',
         secondary=article_subject_association,
         back_populates='articles'
+    )
+    __table_args__ = (
+        UniqueConstraint('url', name='unique_article_url'),
     )

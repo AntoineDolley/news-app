@@ -132,7 +132,7 @@ def get_articles(db: Session, skip: int = 0, limit: int = 100) -> List[models.Ar
     Returns:
         List[models.Article]: A list of article objects.
     """
-    return db.query(models.Article).offset(skip).limit(limit).all()
+    return db.query(models.Article).order_by(models.Article.published_at.desc()).offset(skip).limit(limit).all()
 
 def get_article_by_id(db: Session, article_id: int) -> Optional[models.Article]:
     """
@@ -158,6 +158,11 @@ def create_article(db: Session, article: schemas.ArticleCreate) -> models.Articl
     Returns:
         models.Article: The newly created article object with associated subjects.
     """
+    # Vérifier si l'article existe déjà
+    db_article = db.query(models.Article).filter(models.Article.url == article.url).first()
+    if db_article:
+        return db_article
+
     db_article = models.Article(
         title=article.title,
         summary=article.summary,

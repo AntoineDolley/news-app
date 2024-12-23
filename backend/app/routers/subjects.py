@@ -78,7 +78,7 @@ def get_followed_subjects(user_name: str, db: Session = Depends(get_db)) -> List
     return user.liked_subjects
 
 @router.get("/search", response_model=List[schemas.Article])
-def search_news(q: str, db: Session = Depends(get_db)) -> List[schemas.Article]:
+async def search_news(q: str, db: Session = Depends(get_db)) -> List[schemas.Article]:
     """
     Search for news articles by a given keyword.
 
@@ -89,11 +89,14 @@ def search_news(q: str, db: Session = Depends(get_db)) -> List[schemas.Article]:
     Returns:
         List[schemas.Article]: A list of articles matching the search keyword.
     """
-    articles_data = fetch_news_by_keyword(q)
+    articles_data = await fetch_news_by_keyword(q)
     articles = []
     for article_data in articles_data:
         # Create an ArticleCreate object and store it in the database if it doesn't already exist
         article_create = schemas.ArticleCreate(**article_data)
         db_article = crud.create_article(db, article_create)
         articles.append(db_article)
+
+    articles.sort(key=lambda article: article.published_at)
+    
     return articles

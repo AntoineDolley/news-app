@@ -1,3 +1,4 @@
+// src/components/Search.js
 import React, { useState } from 'react';
 import axios from 'axios';
 import './Search.css';
@@ -9,7 +10,11 @@ const Search = ({ setArticles }) => {
     e.preventDefault();
     try {
       const response = await axios.get(`http://localhost:8000/subjects/search?q=${keyword}`);
-      setArticles(response.data);
+      // Trier les articles par date de publication décroissante
+      const sortedArticles = response.data.sort(
+        (a, b) => new Date(b.published_at) - new Date(a.published_at)
+      );
+      setArticles(sortedArticles);
     } catch (error) {
       console.error(error);
     }
@@ -20,11 +25,11 @@ const Search = ({ setArticles }) => {
       <form onSubmit={handleSearch}>
         <input
           type="text"
-          placeholder="Enter keyword"
+          placeholder="Entrez un mot-clé"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
         />
-        <button type="submit">Search</button>
+        <button type="submit">Rechercher</button>
       </form>
     </div>
   );

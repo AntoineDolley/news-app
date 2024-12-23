@@ -30,14 +30,14 @@ def read_news(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)) -> 
 
 
 @router.get("/refresh", response_model=List[schemas.Article])
-def latest_news(db: Session = Depends(get_db)):
+async def latest_news(db: Session = Depends(get_db)):
     """
     Récupère les dernières actualités générales.
 
     Returns:
         List[schemas.Article]: Liste des articles récents.
     """
-    articles_data = fetch_latest_news()
+    articles_data = await fetch_latest_news()
 
     articles = []
     for article_data in articles_data:
