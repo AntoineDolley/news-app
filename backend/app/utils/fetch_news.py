@@ -2,6 +2,7 @@ import requests
 from datetime import datetime
 from typing import List, Dict
 from ..config import settings
+from ..utils.summarizer import generate_summary
 
 def fetch_news_by_keyword(keyword: str) -> List[Dict[str, str]]:
     """
@@ -32,9 +33,11 @@ def fetch_news_by_keyword(keyword: str) -> List[Dict[str, str]]:
     if response.status_code == 200:
         data = response.json()
         for item in data.get('articles', []):
+
+            summary = generate_summary(item.get('content', ''))  
             article = {
                 'title': item.get('title'),
-                'summary': item.get('description') or 'Résumé indisponible',
+                'summary': summary or 'Résumé indisponible',
                 'published_at': datetime.strptime(item.get('publishedAt'), '%Y-%m-%dT%H:%M:%SZ').isoformat(),
                 'url': item.get('url'),
                 'subjects': [keyword]
@@ -62,9 +65,11 @@ def fetch_latest_news():
     if response.status_code == 200:
         data = response.json()
         for item in data.get('articles', []):
+
+            summary = generate_summary(item.get('content', ''))
             article = {
                 'title': item.get('title'),
-                'summary': item.get('description') or 'Résumé indisponible',
+                'summary': summary or 'Résumé indisponible',
                 'published_at': datetime.strptime(item.get('publishedAt'), '%Y-%m-%dT%H:%M:%SZ'),
                 'url': item.get('url'),
                 'subjects': []  # Pas de sujets spécifiques

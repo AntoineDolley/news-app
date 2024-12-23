@@ -7,9 +7,10 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"  # Algorithme de chiffrement pour JWT
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 300000  # Durée d'expiration du token JWT en minutes
     NEWS_API_KEY: str
+    OPENAI_API_KEY: str # Clé API OpenAI
 
     class Config:
-        env_file = "backend/.env"  # Chargement des variables d'environnement depuis un fichier .env
+        env_file = ".env"  # Chargement des variables d'environnement depuis un fichier .env
 
 # Instanciation de la configuration globale
 settings = Settings()
