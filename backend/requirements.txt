@@ -14,3 +14,4 @@ langchain-core
 langchain-community
 openai
 langchain-openai
+bs4

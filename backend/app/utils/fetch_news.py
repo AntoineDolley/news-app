@@ -5,6 +5,7 @@ from ..config import settings
 from ..utils.summarizer import generate_summary_async
 import asyncio
 import time
+from bs4 import BeautifulSoup
 
 async def fetch_news_by_keyword(keyword: str) -> List[Dict[str, str]]:
     """
@@ -38,11 +39,11 @@ async def fetch_news_by_keyword(keyword: str) -> List[Dict[str, str]]:
         # Filtrer les articles invalides dès le début
         valid_articles = [
             item for item in data.get('articles', [])
-            if item.get('title') and item['title'] != "[Removed]" and item.get('description')
+            if item.get('title') and item['title'] != "[Removed]" and item.get('content')
         ]
 
         # Créer une tâche pour générer un résumé pour chaque description valide
-        tasks = [generate_summary_async(item['description']) for item in valid_articles]
+        tasks = [generate_summary_async(BeautifulSoup(item['content'], "html.parser").get_text()[:1000]) for item in valid_articles]
 
         start_time = time.time()  # Début du timer
         # Exécution parallèle des résumés
@@ -85,11 +86,11 @@ async def fetch_latest_news():
         # Filtrer les articles invalides dès le début
         valid_articles = [
             item for item in data.get('articles', [])
-            if item.get('title') and item['title'] != "[Removed]" and item.get('description')
+            if item.get('title') and item['title'] != "[Removed]" and item.get('content')
         ]
 
         # Créer une tâche pour générer un résumé pour chaque description valide
-        tasks = [generate_summary_async(item['description']) for item in valid_articles]
+        tasks = [generate_summary_async(BeautifulSoup(item['content'], "html.parser").get_text()[:1000]) for item in valid_articles]
 
         start_time = time.time()  # Début du timer
         # Exécution parallèle des résumés
