@@ -1,3 +1,4 @@
+apscheduler
 starlette_exporter
 sqlalchemy
 pydantic
