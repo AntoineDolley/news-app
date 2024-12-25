@@ -4,6 +4,7 @@ from . import models, schemas
 from .models import Article
 from .utils.auth import get_password_hash, verify_password
 from datetime import datetime
+import unicodedata
 
 def get_user_by_name(db: Session, user_name: str) -> Optional[models.User]:
     """
@@ -169,6 +170,10 @@ def create_article(db: Session, article: schemas.ArticleCreate) -> models.Articl
         published_at=article.published_at,
         url=article.url
     )
+    
+    # # Journaliser les détails de l'article
+    # print(f"Article: title={db_article.title}, summary={db_article.summary}, published_at={db_article.published_at}, url={db_article.url}")
+
     db.add(db_article)
     db.commit()
     db.refresh(db_article)

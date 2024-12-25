@@ -12,9 +12,10 @@ def initialize_database():
 
 if __name__ == "__main__":
 
+    DATABASE_URL = "postgresql://news_user:news_password@localhost:5432/news_db"
+
     engine = create_engine(
-        "sqlite:///.\\news.db",
-        connect_args={"check_same_thread": False}
+        DATABASE_URL
     )
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     Base = declarative_base()

@@ -5,10 +5,9 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
-    volumes:
-      - ./database/news.db:/app/news.db  
-    environment:
-      DATABASE_URL: "sqlite:////app/news.db"
+    depends_on:
+      - frontend
+      - db
 
   frontend:
     build:
@@ -16,3 +15,18 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
+
+  db:
+    image: postgres:17
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: news_user
+      POSTGRES_PASSWORD: news_password
+      POSTGRES_DB: news_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
