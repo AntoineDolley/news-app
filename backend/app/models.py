@@ -110,3 +110,18 @@ class Article(Base):
     __table_args__ = (
         UniqueConstraint('url', name='unique_article_url'),
     )
+
+if __name__ == "__main__":
+    from sqlalchemy import create_engine
+    SQLALCHEMY_DATABASE_URL = ("postgresql://news_user:news_password@localhost:5432/news_db")
+
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL,
+        connect_args={
+            "options": "-c client_encoding=utf8"
+        }
+    )
+
+    print("[INFO] Initialisation de la base de données...")
+    Base.metadata.create_all(bind=engine)
+    print("[INFO] Tables créées avec succès.")

@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .routers.news import router as news_router
 from .routers.users import router as users_router
 from .routers.subjects import router as subjects_router
+from .scheduler import start_scheduler
 
 import sys
 import os
@@ -15,6 +16,8 @@ app = FastAPI(
     description="Une API pour accéder aux dernières nouvelles et gérer les utilisateurs et leurs sujets suivis.",
     version="1.0.0"
 )
+
+start_scheduler()
 
 app.add_middleware(
     CORSMiddleware,

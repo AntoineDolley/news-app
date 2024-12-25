@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 from typing import List
 from .. import schemas, crud
 from ..dependencies import get_db
-from ..utils.fetch_news import fetch_latest_news
 
 router = APIRouter()
 
@@ -32,18 +31,11 @@ def read_news(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)) -> 
 @router.get("/refresh", response_model=List[schemas.Article])
 async def latest_news(db: Session = Depends(get_db)):
     """
-    Récupère les dernières actualités générales.
+    Récupère les dernières actualités générales depuis la base de données.
 
     Returns:
         List[schemas.Article]: Liste des articles récents.
     """
-    articles_data = await fetch_latest_news()
-
-    articles = []
-    for article_data in articles_data:
-        # Create an ArticleCreate object and store it in the database if it doesn't already exist
-        article_create = schemas.ArticleCreate(**article_data)
-        db_article = crud.create_article(db, article_create)
-        articles.append(db_article)
-
+    # Appeler la fonction intermédiaire dans `crud.py` pour récupérer les articles récents
+    articles = crud.get_latest_articles(db, limit=10)  # Limite à 10 articles récents, configurable
     return articles

@@ -5,109 +5,73 @@ from ..config import settings
 import asyncio
 import time
 from bs4 import BeautifulSoup
+from datetime import datetime, timedelta
+from sqlalchemy.orm import Session
+from ..utils.openai import generate_embedding
+from ..database import SessionLocal
+from ..models import Article
+from ..crud import add_articles_to_db
 
-async def fetch_news_by_keyword(keyword: str) -> List[Dict[str, str]]:
+def fetch_news_by_date(target_date: datetime.date) -> list:
     """
-    Fetch news articles related to a given keyword using an external news API.
+    Fetch les 100 articles les plus populaires pour une date spécifique.
 
     Parameters:
-        keyword (str): The keyword to search for in the news articles.
+        target_date (datetime.date): La date cible pour laquelle récupérer les articles.
 
     Returns:
-        List[Dict[str, str]]: A list of articles, each represented as a dictionary containing:
-            - title (str): The title of the article.
-            - summary (str): A brief description or summary of the article.
-            - published_at (str): The date and time the article was published, in ISO 8601 format.
-            - url (str): The URL to the full article.
-            - subjects (List[str]): A list of subjects associated with the article.
-
-    Raises:
-        requests.exceptions.RequestException: If the HTTP request fails.
+        list: Liste des articles formatés pour insertion dans la DB.
     """
     url = "https://newsapi.org/v2/everything"
     params = {
-        'q': keyword,
         'apiKey': settings.NEWS_API_KEY,
+        'from': target_date.isoformat(),
+        'to': (target_date + timedelta(days=1)).isoformat(),
+        'sortBy': 'popularity',
+        'pageSize': 100,
+        'language': 'en',
+        'q': 'news'
     }
     response = requests.get(url, params=params)
-    articles_data = []
+    if response.status_code != 200:
+        raise Exception(f"Erreur lors de la récupération des articles: {response.status_code}, {response.text}")
 
-    if response.status_code == 200:
-        data = response.json()
-        
-        # Filtrer les articles invalides dès le début
-        valid_articles = [
-            item for item in data.get('articles', [])
-            if item.get('title') and item['title'] != "[Removed]" and item.get('content')
-        ]
+    articles = []
+    for item in response.json().get('articles', []):
+        articles.append({
+            'title': item.get('title'),
+            'raw_text': item.get('content') or item.get('description'),
+            'summary': None,  # Résumé sera éventuellement ajouté plus tard
+            'published_at': datetime.fromisoformat(item['publishedAt'][:-1]),
+            'url': item.get('url')
+        })
+    return articles
 
-        # Créer une tâche pour générer un résumé pour chaque description valide
-        tasks = [generate_summary_async(BeautifulSoup(item['content'], "html.parser").get_text()[:1000]) for item in valid_articles]
-
-        start_time = time.time()  # Début du timer
-        # Exécution parallèle des résumés
-        summaries = await asyncio.gather(*tasks)
-        end_time = time.time()  # Fin du timer
-        elapsed_time = end_time - start_time
-        print(f"Tout Résumé généré en {elapsed_time:.2f} secondes")  # Affiche le temps écoulé
-
-        for item, summary in zip(valid_articles, summaries):
-            article = {
-                'title': item['title'],
-                'summary': summary,  # Utilise le résumé généré
-                'published_at': datetime.strptime(item['publishedAt'], '%Y-%m-%dT%H:%M:%SZ').isoformat(),
-                'url': item['url'],
-                'subjects': [keyword]
-            }
-            articles_data.append(article)
-
-    else:
-        response.raise_for_status()  # Raises an error if the request was unsuccessful
-
-    return articles_data
-
-async def fetch_latest_news():
+def populate_function():
     """
-    Récupère les dernières actualités générales sans mot-clé spécifique.
-
-    Returns:
-        list: Liste de dictionnaires contenant les informations des articles.
+    Fonction pour récupérer et insérer les articles les plus populaires d'une date donnée.
+    À chaque appel, elle remonte d'un jour si des articles pour cette date existent déjà.
     """
-    url = "https://newsapi.org/v2/top-headlines"
-    params = {
-        'apiKey': settings.NEWS_API_KEY,
-        'country': 'us'
-    }
-    response = requests.get(url, params=params)
-    articles_data = []
-    if response.status_code == 200:
-        data = response.json()
-        # Filtrer les articles invalides dès le début
-        valid_articles = [
-            item for item in data.get('articles', [])
-            if item.get('title') and item['title'] != "[Removed]" and item.get('content')
-        ]
+    db: Session = SessionLocal()
+    target_date = datetime.utcnow().date() - timedelta(days=2)
 
-        # Créer une tâche pour générer un résumé pour chaque description valide
-        tasks = [generate_summary_async(BeautifulSoup(item['content'], "html.parser").get_text()[:1000]) for item in valid_articles]
+    while True:
+        # Vérifier si des articles pour la date cible existent déjà
+        articles_for_date = db.query(Article).filter(Article.published_at >= target_date,
+                                                     Article.published_at < target_date + timedelta(days=1)).all()
 
-        start_time = time.time()  # Début du timer
-        # Exécution parallèle des résumés
-        summaries = await asyncio.gather(*tasks)
-        end_time = time.time()  # Fin du timer
-        elapsed_time = end_time - start_time
-        print(f"Tout Résumé généré en {elapsed_time:.2f} secondes")  # Affiche le temps écoulé
+        if articles_for_date:
+            print(f"[INFO] Articles déjà présents pour le {target_date}, passage au jour précédent.")
+            target_date -= timedelta(days=1)
+        else:
+            break
 
-        for item, summary in zip(data.get('articles', []), summaries):
-            article = {
-                'title': item.get('title'),
-                'summary': summary or 'Résumé indisponible',
-                'published_at': datetime.strptime(item.get('publishedAt'), '%Y-%m-%dT%H:%M:%SZ'),
-                'url': item.get('url'),
-                'subjects': []  # Pas de sujets spécifiques
-            }
-            articles_data.append(article)
-    else : 
-        response.raise_for_status()
+    print(f"[INFO] Récupération des articles pour le {target_date}.")
+    
+    # Fetch des articles pour cette date via l’API
+    articles_data = fetch_news_by_date(target_date)
+    
+    # Utilisation de la fonction `add_articles_to_db`
+    add_articles_to_db(db, articles_data)
 
-    return articles_data
+    db.close()

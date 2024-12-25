@@ -6,6 +6,9 @@ from .utils.auth import get_password_hash, verify_password
 from datetime import datetime
 import unicodedata
 from sqlalchemy.sql import text
+from .utils.openai import generate_embedding
+from bs4 import BeautifulSoup
+from sqlalchemy import desc
 
 def get_user_by_name(db: Session, user_name: str) -> Optional[models.User]:
     """
@@ -149,45 +152,6 @@ def get_article_by_id(db: Session, article_id: int) -> Optional[models.Article]:
     """
     return db.query(models.Article).filter(models.Article.id == article_id).first()
 
-def create_article(db: Session, article: schemas.ArticleCreate) -> models.Article:
-    """
-    Create a new article and associate it with subjects.
-
-    Parameters:
-        db (Session): The database session.
-        article (schemas.ArticleCreate): The article data for creation.
-
-    Returns:
-        models.Article: The newly created article object with associated subjects.
-    """
-    # Vérifier si l'article existe déjà
-    db_article = db.query(models.Article).filter(models.Article.url == article.url).first()
-    if db_article:
-        return db_article
-
-    db_article = models.Article(
-        title=article.title,
-        summary=article.summary,
-        published_at=article.published_at,
-        url=article.url
-    )
-    
-    # # Journaliser les détails de l'article
-    # print(f"Article: title={db_article.title}, summary={db_article.summary}, published_at={db_article.published_at}, url={db_article.url}")
-
-    db.add(db_article)
-    db.commit()
-    db.refresh(db_article)
-    # Associate subjects with the article
-    for subject_name in article.subjects:
-        subject = get_subject_by_name(db, subject_name)
-        if not subject:
-            subject = create_subject(db, subject_name)
-        db_article.subjects.append(subject)
-    db.commit()
-    db.refresh(db_article)
-    return db_article
-
 def authenticate_user(db: Session, username: str, password: str) -> Union[models.User, bool]:
     """
     Authenticate a user by verifying their username and password.
@@ -213,7 +177,7 @@ def search_articles_by_similarity(db, query_embedding: list, limit: int = 10):
     """
     sql_query = text("""
         SELECT id, title, summary, raw_text, published_at, url, embedding
-        FROM articles
+        FROM article
         ORDER BY embedding <-> :query_embedding
         LIMIT :limit
     """)
@@ -243,7 +207,7 @@ def update_article_summary(db, article_id: int, summary: str):
     Met à jour le champ summary d'un article existant.
     """
     sql_update = text("""
-        UPDATE articles
+        UPDATE article
         SET summary = :summary
         WHERE id = :article_id
         RETURNING id, title, summary, raw_text, published_at, url, embedding
@@ -251,3 +215,60 @@ def update_article_summary(db, article_id: int, summary: str):
     row = db.execute(sql_update, {"summary": summary, "article_id": article_id}).fetchone()
     db.commit()
     return dict(row) if row else None
+
+def add_articles_to_db(db: Session, articles_data: list):
+    """
+    Ajoute une liste d'articles à la base de données après vérification des doublons.
+
+    Parameters:
+        db (Session): La session de base de données.
+        articles_data (list): La liste des articles à ajouter.
+        target_date (str): La date des articles ajoutés (pour le log).
+
+    Returns:
+        None
+    """
+
+    valid_articles = [
+        item for item in articles_data
+        if item.get('title') and item['title'] != "[Removed]" and item.get('raw_text')
+    ]
+
+    for item in valid_articles:
+        item['raw_text'] = BeautifulSoup(item['raw_text'], "html.parser").get_text()[:1000]
+
+    for article in valid_articles:
+        # Vérifier si l'article existe déjà via son URL
+        existing_article = db.query(Article).filter(Article.url == article['url']).first()
+        if existing_article:
+            print(f"[INFO] Article déjà existant : {article['title']}")
+            continue
+
+        # Générer un embedding pour le contenu brut
+        embedding = generate_embedding(article['raw_text'])
+
+        # Créer et insérer l'article
+        new_article = Article(
+            title=article['title'],
+            raw_text=article['raw_text'],
+            summary=article.get('summary'),  # Peut être vide si pas fourni
+            published_at=article['published_at'],
+            url=article['url'],
+            embedding=embedding
+        )
+        db.add(new_article)
+
+    db.commit()
+
+def get_latest_articles(db: Session, limit: int = 10):
+    """
+    Récupère les articles les plus récents depuis la base de données.
+
+    Parameters:
+        db (Session): La session de base de données.
+        limit (int): Le nombre maximum d'articles à récupérer.
+
+    Returns:
+        List[Article]: Liste des articles les plus récents.
+    """
+    return db.query(Article).order_by(desc(Article.published_at)).limit(limit).all()
