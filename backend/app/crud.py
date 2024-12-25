@@ -170,51 +170,45 @@ def authenticate_user(db: Session, username: str, password: str) -> Union[models
     return user
 
 
-def search_articles_by_similarity(db, query_embedding: list, limit: int = 10):
-    """
-    Recherche les articles les plus proches de l'embedding donné, 
-    en utilisant la similarité vectorielle (<->).
-    """
-    sql_query = text("""
-        SELECT id, title, summary, raw_text, published_at, url, embedding
-        FROM article
-        ORDER BY embedding <-> :query_embedding
-        LIMIT :limit
-    """)
-    rows = db.execute(sql_query, {
-        "query_embedding": query_embedding,
-        "limit": limit
-    }).fetchall()
-    
-    # Convertir chaque ligne en un dict ou objet Article si nécessaire
-    articles = []
-    for row in rows:
-        # row est un RowProxy contenant les colonnes
-        article_dict = {
-            "id": row["id"],
-            "title": row["title"],
-            "summary": row["summary"],
-            "raw_text": row["raw_text"],
-            "published_at": row["published_at"],
-            "url": row["url"],
-            "embedding": row["embedding"]
-        }
-        articles.append(article_dict)
-    return articles
 
-def update_article_summary(db, article_id: int, summary: str):
+def search_articles_by_similarity(db: Session, query_embedding: list, limit: int = 10) -> List[Article]:
     """
-    Met à jour le champ summary d'un article existant.
+    Find articles by similarity to a given embedding.
+
+    Parameters:
+        db (Session): The database session.
+        query_embedding (list): The embedding to compare with.
+        limit (int): The maximum number of articles to return.
+
+    Returns:
+        List[Article]: A list of similar articles.
     """
-    sql_update = text("""
-        UPDATE article
-        SET summary = :summary
-        WHERE id = :article_id
-        RETURNING id, title, summary, raw_text, published_at, url, embedding
-    """)
-    row = db.execute(sql_update, {"summary": summary, "article_id": article_id}).fetchone()
-    db.commit()
-    return dict(row) if row else None
+    query_embedding_pg = f"[{','.join(map(str, query_embedding))}]"
+    return (
+        db.query(Article)
+        .order_by(Article.embedding.op("<->")(query_embedding_pg))
+        .limit(limit)
+        .all()
+    )
+
+def update_article_summary(db: Session, article_id: int, summary: str) -> Article:
+    """
+    Update the summary of an article by its ID.
+
+    Parameters:
+        db (Session): The database session.
+        article_id (int): The ID of the article to update.
+        summary (str): The new summary.
+
+    Returns:
+        Article: The updated article object.
+    """
+    article = db.query(Article).filter(Article.id == article_id).first()
+    if article:
+        article.summary = summary
+        db.commit()
+        db.refresh(article)
+    return article
 
 def add_articles_to_db(db: Session, articles_data: list):
     """

@@ -30,7 +30,8 @@ def fetch_news_by_date(target_date: datetime.date) -> list:
         'sortBy': 'popularity',
         'pageSize': 100,
         'language': 'en',
-        'q': 'news'
+        'q': 'news',
+        'excludeDomains': 'yahoo.com'
     }
     response = requests.get(url, params=params)
     if response.status_code != 200:

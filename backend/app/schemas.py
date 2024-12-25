@@ -68,6 +68,7 @@ class Article(ArticleBase):
 
     class Config:
         orm_mode = True  # Active la compatibilité avec SQLAlchemy
+        from_attributes = True
 
 
 class UserBase(BaseModel):

@@ -1,40 +1,35 @@
-from sqlalchemy.orm import Session
-from ..utils.fetch_news import fetch_news_by_keyword
-from . import crud, models, schemas
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
 from datetime import datetime
+import logging
+from ..database import SessionLocal
+from ..utils.fetch_news import populate_function
 
-def check_for_updates(user_id: int, db: Session) -> None:
+
+logging.basicConfig(level=logging.INFO)
+
+def scheduled_fetch_news():
     """
-    Check for new articles related to the subjects followed by a specific user and update their last connection.
-
-    This function fetches the latest articles for each subject followed by the user.
-    If a new article is found (an article not already stored in the database), it is added.
-    Finally, the user's `last_connection` timestamp is updated to the current time.
-
-    Parameters:
-        user_id (int): The ID of the user whose followed subjects are being checked for updates.
-        db (Session): The database session used for querying and updating the database.
-
-    Returns:
-        None
-
-    Raises:
-        None, but the function commits updates to the database.
+    Fonction qui sera appelée périodiquement pour récupérer et insérer les articles dans la DB.
     """
-    user = db.query(models.User).filter(models.User.id == user_id).first()
-    if user:
-        for subject in user.liked_subjects:
-            # Fetch latest articles related to the subject's name
-            articles_data = fetch_news_by_keyword(subject.name)
-            for article_data in articles_data:
-                # Create an ArticleCreate schema from the fetched data
-                article_create = schemas.ArticleCreate(**article_data)
-                # Check if the article already exists in the database by URL
-                existing_article = db.query(models.Article).filter(models.Article.url == article_create.url).first()
-                # If the article does not exist, add it to the database
-                if not existing_article:
-                    crud.create_article(db, article_create)
-        # Update the user's last connection time to the current time
-        user.last_connection = datetime.utcnow()
-        db.commit()
+    logging.info(f"[SCHEDULER] Début de scheduled_fetch_news à {datetime.now()}")
+    db = SessionLocal()
+    try:
+        # Appelez ici la fonction de peuplement que vous avez créée, par ex. main() ou fetch_and_populate_articles
+        populate_function()
+    except Exception as e:
+        logging.error(f"[SCHEDULER] Erreur lors de la récupération des articles : {e}")
+    finally:
+        db.close()
+    logging.info(f"[SCHEDULER] Fin de scheduled_fetch_news à {datetime.now()}")
 
+def start_scheduler():
+    """
+    Configure et démarre l'APScheduler pour lancer 'scheduled_fetch_news' de temps en temps.
+    """
+    scheduler = BackgroundScheduler(timezone="UTC")
+    # Exemple : run toutes les 6 heures
+    scheduler.add_job(scheduled_fetch_news, IntervalTrigger(minutes=1), id='fetch_news_job')
+    
+    scheduler.start()
+    logging.info("[SCHEDULER] APScheduler démarré.")

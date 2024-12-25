@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .routers.news import router as news_router
 from .routers.users import router as users_router
 from .routers.subjects import router as subjects_router
-from .scheduler import start_scheduler
+from .tasks.background_tasks import start_scheduler
 
 import sys
 import os

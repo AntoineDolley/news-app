@@ -5,6 +5,9 @@ from .. import schemas, crud
 from ..dependencies import get_db
 from ..utils.openai import generate_embedding, generate_summary
 from ..crud import search_articles_by_similarity, update_article_summary
+from app.schemas import Article as ArticleSchema
+from app.models import Article as ArticleModel
+
 
 router = APIRouter()
 
@@ -79,29 +82,26 @@ def get_followed_subjects(user_name: str, db: Session = Depends(get_db)) -> List
     return user.liked_subjects
 
 @router.get("/search", response_model=List[schemas.Article])
-async def search_news(q: str, limit: int = 10, db: Session = Depends(get_db)) -> List[schemas.Article]:
+async def search_news(q: str, db: Session = Depends(get_db)):
     """
-    Recherche des articles en fonction d'une requête textuelle `q`.
-    1. Génère un embedding pour `q`.
-    2. Recherche les articles les plus proches (via la base vectorielle).
-    3. Pour chaque article, génère un résumé s'il n'existe pas.
-    4. Retourne la liste des articles.
+    Recherche des articles similaires basés sur une requête textuelle.
     """
-    # 1. Générer l'embedding
+    # Génération de l'embedding pour la requête
     query_embedding = generate_embedding(q)
-
-    # 2. Rechercher les articles similaires
-    articles_dicts = search_articles_by_similarity(db, query_embedding, limit=limit)
+    
+    # Recherche des articles similaires dans la base de données
+    similar_articles = search_articles_by_similarity(db, query_embedding)
+    
+    # Mise à jour des résumés manquants
     updated_articles = []
-
-    for article_data in articles_dicts:
-        if not article_data["summary"]:
-            # 3. Générer un résumé et mettre à jour l'article
-            new_summary = generate_summary(article_data["raw_text"])
-            updated_article = update_article_summary(db, article_data["id"], new_summary)
+    for article in similar_articles:
+        if not article.summary:
+            # Génération du résumé pour les articles sans résumé
+            new_summary = generate_summary(article.raw_text)
+            updated_article = update_article_summary(db, article.id, new_summary)
             updated_articles.append(updated_article)
         else:
-            updated_articles.append(article_data)
-
-    # Convertir en liste de schemas.Article
-    return [schemas.Article(**a) for a in updated_articles]
+            updated_articles.append(article)
+    
+    # Conversion des articles en dictionnaires compatibles avec le schéma
+    return [ArticleSchema.from_orm(article) for article in updated_articles]
