@@ -6,7 +6,8 @@ from .utils.auth import get_password_hash, verify_password
 from datetime import datetime
 import unicodedata
 from sqlalchemy.sql import text
-from .utils.openai import generate_embedding
+from .utils.openai import generate_embedding, generate_summary_async
+from .models import Article as ArticleModel
 from bs4 import BeautifulSoup
 from sqlalchemy import desc
 
@@ -266,3 +267,11 @@ def get_latest_articles(db: Session, limit: int = 10):
         List[Article]: Liste des articles les plus récents.
     """
     return db.query(Article).order_by(desc(Article.published_at)).limit(limit).all()
+
+async def update_article_if_needed(db: Session, article: ArticleModel):
+        if not article.summary:
+            # Génération asynchrone du résumé pour les articles sans résumé
+            new_summary = await generate_summary_async(article.raw_text)
+            return update_article_summary(db, article.id, new_summary)
+        return article
+    

@@ -3,10 +3,10 @@ from sqlalchemy.orm import Session
 from typing import List
 from .. import schemas, crud
 from ..dependencies import get_db
-from ..utils.openai import generate_embedding, generate_summary
-from ..crud import search_articles_by_similarity, update_article_summary
+from ..utils.openai import generate_embedding
+from ..crud import search_articles_by_similarity, update_article_if_needed
 from app.schemas import Article as ArticleSchema
-from app.models import Article as ArticleModel
+import asyncio
 
 
 router = APIRouter()
@@ -92,16 +92,10 @@ async def search_news(q: str, db: Session = Depends(get_db)):
     # Recherche des articles similaires dans la base de données
     similar_articles = search_articles_by_similarity(db, query_embedding)
     
-    # Mise à jour des résumés manquants
-    updated_articles = []
-    for article in similar_articles:
-        if not article.summary:
-            # Génération du résumé pour les articles sans résumé
-            new_summary = generate_summary(article.raw_text)
-            updated_article = update_article_summary(db, article.id, new_summary)
-            updated_articles.append(updated_article)
-        else:
-            updated_articles.append(article)
-    
+     # Mise à jour des résumés manquants en parallèle
+    updated_articles = await asyncio.gather(
+        *(update_article_if_needed(db, article) for article in similar_articles)
+    )
+
     # Conversion des articles en dictionnaires compatibles avec le schéma
     return [ArticleSchema.from_orm(article) for article in updated_articles]
