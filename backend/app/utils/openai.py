@@ -1,3 +1,4 @@
+import openai
 from langchain_openai import OpenAI
 from langchain_core.prompts import PromptTemplate
 from ..config import settings
@@ -5,9 +6,17 @@ import os
 import asyncio
 import time
 
+openai.api_key = settings.OPENAI_API_KEY
 # Initialiser le modèle OpenAI
 openai_api_key = settings.OPENAI_API_KEY 
 llm = OpenAI(temperature=0.9, openai_api_key=openai_api_key)
+
+def generate_embedding(text: str) -> list:
+    response = openai.Embedding.create(
+        input=text,
+        model="text-embedding-ada-002"
+    )
+    return response["data"][0]["embedding"]
 
 def generate_summary(text: str) -> str:
     """

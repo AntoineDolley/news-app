@@ -41,9 +41,10 @@ class ArticleBase(BaseModel):
         url (str): URL de l'article complet.
     """
     title: str
-    summary: str
+    raw_text: str
     published_at: datetime
     url: str
+
 
 class ArticleCreate(ArticleBase):
     """
@@ -52,7 +53,7 @@ class ArticleCreate(ArticleBase):
     Attributes:
         subjects (List[str]): Liste des noms des sujets associés à l'article.
     """
-    subjects: List[str]
+    summary: Optional[str] = None
 
 class Article(ArticleBase):
     """
@@ -63,7 +64,7 @@ class Article(ArticleBase):
         subjects (List[Subject]): Liste des sujets associés à l'article.
     """
     id: int
-    subjects: List[Subject] = []
+    summary: Optional[str] = None
 
     class Config:
         orm_mode = True  # Active la compatibilité avec SQLAlchemy

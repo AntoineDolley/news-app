@@ -2,7 +2,6 @@ import requests
 from datetime import datetime
 from typing import List, Dict
 from ..config import settings
-from ..utils.summarizer import generate_summary_async
 import asyncio
 import time
 from bs4 import BeautifulSoup

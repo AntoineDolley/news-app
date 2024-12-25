@@ -5,6 +5,7 @@ from .models import Article
 from .utils.auth import get_password_hash, verify_password
 from datetime import datetime
 import unicodedata
+from sqlalchemy.sql import text
 
 def get_user_by_name(db: Session, user_name: str) -> Optional[models.User]:
     """
@@ -203,3 +204,50 @@ def authenticate_user(db: Session, username: str, password: str) -> Union[models
     if not user or not verify_password(password, user.hashed_password):
         return False
     return user
+
+
+def search_articles_by_similarity(db, query_embedding: list, limit: int = 10):
+    """
+    Recherche les articles les plus proches de l'embedding donné, 
+    en utilisant la similarité vectorielle (<->).
+    """
+    sql_query = text("""
+        SELECT id, title, summary, raw_text, published_at, url, embedding
+        FROM articles
+        ORDER BY embedding <-> :query_embedding
+        LIMIT :limit
+    """)
+    rows = db.execute(sql_query, {
+        "query_embedding": query_embedding,
+        "limit": limit
+    }).fetchall()
+    
+    # Convertir chaque ligne en un dict ou objet Article si nécessaire
+    articles = []
+    for row in rows:
+        # row est un RowProxy contenant les colonnes
+        article_dict = {
+            "id": row["id"],
+            "title": row["title"],
+            "summary": row["summary"],
+            "raw_text": row["raw_text"],
+            "published_at": row["published_at"],
+            "url": row["url"],
+            "embedding": row["embedding"]
+        }
+        articles.append(article_dict)
+    return articles
+
+def update_article_summary(db, article_id: int, summary: str):
+    """
+    Met à jour le champ summary d'un article existant.
+    """
+    sql_update = text("""
+        UPDATE articles
+        SET summary = :summary
+        WHERE id = :article_id
+        RETURNING id, title, summary, raw_text, published_at, url, embedding
+    """)
+    row = db.execute(sql_update, {"summary": summary, "article_id": article_id}).fetchone()
+    db.commit()
+    return dict(row) if row else None

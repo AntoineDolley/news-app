@@ -1,7 +1,9 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Table
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Table, Text
 from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import relationship
 from .database import Base
+from sqlalchemy.types import UserDefinedType
+from sqlalchemy import Float
 
 # Table d'association entre les utilisateurs et les sujets
 user_subject_association = Table(
@@ -73,6 +75,10 @@ class Subject(Base):
         back_populates='subjects'
     )
 
+class Vector(UserDefinedType):
+    def get_col_spec(self):
+        # Ajustez la dimension selon votre modèle (par ex. 1536 pour text-embedding-ada-002)
+        return "vector(1536)"
 
 class Article(Base):
     """
@@ -81,7 +87,8 @@ class Article(Base):
     Attributes:
         id (int): Identifiant unique de l'article.
         title (str): Titre de l'article.
-        summary (str): Résumé de l'article.
+        summary (str): Résumé de l'article. Peut être vide si non résumé.
+        raw_text (str): Texte brut de l'article, tel qu'extrait de la source.
         published_at (DateTime): Date et heure de publication de l'article.
         url (str): URL de l'article complet.
         subjects (List[Subject]): Liste des sujets associés à l'article.
@@ -89,10 +96,12 @@ class Article(Base):
     __tablename__ = 'articles'
 
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String)
-    summary = Column(String)
-    published_at = Column(DateTime)
-    url = Column(String, unique=True, index=True)
+    title = Column(String, nullable=False)
+    summary = Column(String, nullable=True)  # Peut être NULL
+    raw_text = Column(Text, nullable=False)  # Stocke le texte brut
+    published_at = Column(DateTime, nullable=False)
+    url = Column(String, unique=True, index=True, nullable=False)
+    embedding = Column(Vector)
     subjects = relationship(
         'Subject',
         secondary=article_subject_association,

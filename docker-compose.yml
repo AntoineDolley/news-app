@@ -17,7 +17,7 @@ services:
       - "3000:3000"
 
   db:
-    image: postgres:17
+    image: ankane/pgvector
     container_name: postgres_db
     environment:
       POSTGRES_USER: news_user
