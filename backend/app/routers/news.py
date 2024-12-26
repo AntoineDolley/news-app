@@ -3,11 +3,14 @@ from sqlalchemy.orm import Session
 from typing import List
 from .. import schemas, crud
 from ..dependencies import get_db
+import asyncio
+from ..crud import update_article_if_needed
+from app.schemas import Article as ArticleSchema
 
 router = APIRouter()
 
 @router.get("/", response_model=List[schemas.Article])
-def read_news(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)) -> List[schemas.Article]:
+async def read_news(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)) -> List[schemas.Article]:
     """
     Retrieve a list of recent news articles.
 
@@ -24,4 +27,8 @@ def read_news(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)) -> 
     except :
         return []  # Renvoie une liste vide si aucun article n'est trouvé
 
-    return articles
+    updated_articles = await asyncio.gather(
+        *(update_article_if_needed(db, article) for article in articles)
+    )
+
+    return [ArticleSchema.from_orm(article) for article in updated_articles]

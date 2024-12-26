@@ -1,22 +1,28 @@
-/* App.css */
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f0f0f0;
-  margin: 0;
-  padding: 0;
+/* src/App.css */
+
+/* Conteneur principal de l'application */
+.app-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* Deux colonnes : 2/3 pour la gauche, 1/3 pour la droite */
+  gap: 20px; /* Espacement entre les colonnes */
+  padding: 20px;
+  height: 100vh; /* Prend toute la hauteur de la fenêtre */
+  background-color: #f4f4f4; /* Arrière-plan global */
 }
 
-h1 {
-  color: #1B065E;
-  text-align: center;
-  margin-top: 20px;
+/* Colonne de gauche */
+.left-column {
+  background-color: #ffffff; /* Fond blanc */
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre légère */
+  overflow-y: auto; /* Permet le défilement si le contenu dépasse */
 }
 
-a {
-  color: #17BEBB;
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
+/* Colonne de droite */
+.right-column {
+  background-color: #e8e8e8; /* Fond gris clair */
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre légère */
 }

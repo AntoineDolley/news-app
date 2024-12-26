@@ -29,7 +29,7 @@ def start_scheduler():
     """
     scheduler = BackgroundScheduler(timezone="UTC")
     # Exemple : run toutes les 6 heures
-    scheduler.add_job(scheduled_fetch_news, IntervalTrigger(minutes=1), id='fetch_news_job')
+    scheduler.add_job(scheduled_fetch_news, IntervalTrigger(minutes=10), id='fetch_news_job')
     
     scheduler.start()
     logging.info("[SCHEDULER] APScheduler démarré.")

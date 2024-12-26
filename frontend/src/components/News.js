@@ -11,7 +11,6 @@ const News = () => {
     const fetchNews = async () => {
       try {
         const response = await axios.get('http://localhost:8000/news');
-        // Trier les articles par date de publication décroissante
         const sortedArticles = response.data.sort(
           (a, b) => new Date(b.published_at) - new Date(a.published_at)
         );
@@ -26,16 +25,16 @@ const News = () => {
 
   return (
     <div className="news-container">
-      <h1>News</h1>
       <Search setArticles={setArticles} />
       <ul className="news-list">
         {articles.map((article) => (
-          <li key={article.id} className="news-item">
-            <h2>{article.title}</h2>
-            <p>{article.summary}</p>
-            <p><em>Publié le : {new Date(article.published_at).toLocaleString()}</em></p>
-            <a href={article.url} target="_blank" rel="noopener noreferrer">Lire la suite</a>
-          </li>
+          <a href={article.url} className="article-link">
+            <li key={article.id} className="news-item">
+              <h4 className="news-title">{article.title}</h4>
+              <p>{article.summary}</p>
+              <p><em>Publié le : {new Date(article.published_at).toLocaleString()}</em></p>
+            </li>
+          </a>
         ))}
       </ul>
     </div>

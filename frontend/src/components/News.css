@@ -1,45 +1,74 @@
-/* News.css */
+/* src/components/News.css */
+
+/* Conteneur principal */
 .news-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-    background-color: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .news-container h1 {
-    color: #1B065E;
-  }
-  
+  padding: 20px;
+  background-color: #ffffff; /* Couleur de fond globale */
+  color: #333; /* Couleur de texte par défaut */
+}
+
+/* Liste des articles */
+.news-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Deux colonnes */
+  gap: 20px; /* Espacement entre les articles */
+}
+
+/* Article individuel */
+.news-item {
+  border: 1px solid #ddd; /* Bordure légère */
+  padding: 10px;
+  border-radius: 8px;
+  background-color: #ffffff; /* Fond blanc pour contraster */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre légère */
+  transition: transform 0.2s, box-shadow 0.2s; /* Animation douce */
+}
+
+/* Animation au survol */
+.news-item:hover {
+  transform: translateY(-5px); /* Léger déplacement vers le haut */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Ombre plus prononcée */
+}
+
+/* Titre de l'article */
+.news-title {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  margin-top: 10px;
+  color: #007acc; /* Bleu pour les titres */
+  font-weight: bold;
+}
+
+/* Paragraphe (résumé de l'article) */
+.news-item p {
+  margin: 0.5rem 0;
+  color: #555; /* Gris doux pour le texte */
+  line-height: 1.6; /* Espacement des lignes pour une meilleure lisibilité */
+}
+
+/* Lien */
+.news-item a {
+  color: #007acc; /* Bleu pour les liens */
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.news-item a:hover {
+  text-decoration: underline; /* Soulignement au survol */
+  color: #005b99; /* Couleur légèrement plus foncée */
+}
+
+/* Responsive Design : Mise en page sur une seule colonne pour les petits écrans */
+@media (max-width: 768px) {
   .news-list {
-    list-style-type: none;
-    padding: 0;
+    grid-template-columns: 1fr; /* Une seule colonne */
   }
-  
-  .news-item {
-    background: #f9f9f9;
-    margin: 10px 0;
-    padding: 15px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border-left: 5px solid #FF47DA;
-  }
-  
-  .news-item h2 {
-    margin: 0 0 10px;
-    color: #0E7C7B;
-  }
-  
-  .news-item p {
-    margin: 0 0 10px;
-    color: #555;
-  }
-  
-  .news-item a {
-    color: #17BEBB;
-  }
-  
-  .news-item a:hover {
-    color: #BF1A2F;
-  }
+}
+
+.article-link {
+  text-decoration: none; /* Enlève le surlignage */
+  color: inherit; /* Utilise la couleur du texte par défaut */
+}
