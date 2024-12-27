@@ -32,31 +32,40 @@ def generate_embedding(text: str) -> list:
 
 def generate_summary(text: str) -> str:
     """
-    Génère un résumé d'une phrase pour un texte donné en utilisant OpenAI.
+    Generates a concise and informative summary for the given text using OpenAI.
 
     Parameters:
-        text (str): Le texte à résumer.
+        text (str): The text to summarize.
 
     Returns:
-        str: Le résumé généré.
+        str: The generated summary.
     """
-    # Modèle de prompt pour le résumé
+    # Enhanced prompt template for better summaries
     template = """
-    Summarize the following text:
+    You are an expert summarizer. Your task is to create a clear and concise summary of the following text.
     
+    Guidelines:
+    - The summary should not exceed 3 sentences.
+    - Focus on the main ideas and omit unnecessary details.
+    - Avoid repetition and redundancy.
+    - Make sure the summary is in fluent and grammatically correct English.
+
+    Text:
     {text}
+
+    Summary:
     """
 
-    # Créer le prompt
+    # Create the prompt
     prompt = PromptTemplate(input_variables=["text"], template=template)
     summary_prompt = prompt.format(text=text)
 
-    # Générer le résumé
+    # Generate the summary
     start_time = time.time()
     summary = llm.invoke(summary_prompt)
-    end_time = time.time()  # Fin du timer
+    end_time = time.time()  # End timer
     elapsed_time = end_time - start_time
-    print(f"Résumé généré en {elapsed_time:.2f} secondes")
+    print(f"Summary generated in {elapsed_time:.2f} seconds")
 
     return summary.strip()
 
@@ -113,14 +122,21 @@ def generate_summary_and_title(cluster_text: str) -> dict:
 
     return {"summary": summary, "title": title}
 
-async def generate_summary_and_title_async(text: str) -> str:
+async def generate_summary_and_title_async(text: str, cluster_id: int) -> tuple:
     """
-    Génère un résumé d'une phrase pour un texte donné en utilisant OpenAI (asynchrone).
+    Génère un résumé et un titre pour un texte donné en utilisant OpenAI (asynchrone).
 
     Parameters:
         text (str): Le texte à résumer.
+        cluster_id (int): L'identifiant du cluster.
 
     Returns:
-        str: Le résumé généré.
+        tuple: (cluster_id, dict) où dict contient le résumé et le titre.
     """
-    return await asyncio.to_thread(generate_summary_and_title, text)
+    summary_and_title = await asyncio.to_thread(generate_summary_and_title, text)
+    return cluster_id, summary_and_title
+
+
+async def generate_summaries_for_clusters(cluster_texts):
+    tasks = [generate_summary_and_title_async(text) for text in cluster_texts]
+    return await asyncio.gather(*tasks)
