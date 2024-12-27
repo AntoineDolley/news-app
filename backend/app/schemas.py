@@ -127,3 +127,13 @@ class TokenData(BaseModel):
         username (Optional[str]): Nom d'utilisateur extrait du token JWT.
     """
     username: Optional[str] = None
+
+class ClusterSummary(BaseModel):
+    cluster_id: int
+    title: str
+    summary: str
+    articles: List[Article]
+
+class NewsResponse(BaseModel):
+    articles: List[Article]
+    clusters: List[ClusterSummary]

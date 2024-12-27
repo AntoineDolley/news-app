@@ -172,7 +172,7 @@ def authenticate_user(db: Session, username: str, password: str) -> Union[models
 
 
 
-def search_articles_by_similarity(db: Session, query_embedding: list, limit: int = 10) -> List[Article]:
+def search_articles_by_similarity(db: Session, query_embedding: list, limit: int = 20) -> List[Article]:
     """
     Find articles by similarity to a given embedding.
 
@@ -255,7 +255,7 @@ def add_articles_to_db(db: Session, articles_data: list):
 
     db.commit()
 
-def get_latest_articles(db: Session, limit: int = 10):
+def get_latest_articles(db: Session, limit: int = 20):
     """
     Récupère les articles les plus récents depuis la base de données.
 

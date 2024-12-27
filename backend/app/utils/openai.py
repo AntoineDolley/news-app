@@ -71,3 +71,56 @@ async def generate_summary_async(text: str) -> str:
         str: Le résumé généré.
     """
     return await asyncio.to_thread(generate_summary, text)
+
+def generate_summary_and_title(cluster_text: str) -> dict:
+    """
+    Génère un résumé et un titre pour un texte donné en utilisant OpenAI.
+
+    Parameters:
+        cluster_text (str): Le texte regroupé des articles d'un cluster.
+
+    Returns:
+        dict: Un dictionnaire contenant le résumé et le titre.
+    """
+    # Prompt pour résumé et titre
+    template = """
+    You are a professional summarizer. Analyze the following text and perform the following tasks:
+    
+    1. Generate a concise summary of no more than 2-3 sentences.
+    2. Propose a title that represents the topic discussed in the text.
+    
+    Text:
+    {text}
+    
+    Provide your response in the following format:
+    Summary: <summary>
+    Title: <title>
+    """
+
+    # Créer le prompt
+    prompt = PromptTemplate(input_variables=["text"], template=template)
+    formatted_prompt = prompt.format(text=cluster_text)
+
+    # Appeler l'API OpenAI
+    response = llm.invoke(formatted_prompt)
+    
+    # Extraire le résumé et le titre
+    summary, title = None, None
+    if "Summary:" in response and "Title:" in response:
+        parts = response.split("Summary:")[1].strip().split("Title:")
+        summary = parts[0].strip()
+        title = parts[1].strip()
+
+    return {"summary": summary, "title": title}
+
+async def generate_summary_and_title_async(text: str) -> str:
+    """
+    Génère un résumé d'une phrase pour un texte donné en utilisant OpenAI (asynchrone).
+
+    Parameters:
+        text (str): Le texte à résumer.
+
+    Returns:
+        str: Le résumé généré.
+    """
+    return await asyncio.to_thread(generate_summary_and_title, text)

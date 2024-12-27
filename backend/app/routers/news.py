@@ -6,29 +6,56 @@ from ..dependencies import get_db
 import asyncio
 from ..crud import update_article_if_needed
 from app.schemas import Article as ArticleSchema
+from ..clustering import workflow_query_cluster_and_summarize
 
 router = APIRouter()
 
-@router.get("/", response_model=List[schemas.Article])
-async def read_news(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)) -> List[schemas.Article]:
+@router.get("/", response_model=schemas.NewsResponse)
+async def read_news(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)) -> schemas.NewsResponse:
     """
-    Retrieve a list of recent news articles.
-
-    Parameters:
-        skip (int): The number of articles to skip. Default is 0.
-        limit (int): The maximum number of articles to return. Default is 10.
-        db (Session): The database session dependency.
-
-    Returns:
-        List[schemas.Article]: A list of articles with titles, summaries, publication dates, and URLs.
+    Retrieve a list of recent news articles and their clusters.
     """
-    try :
-        articles = crud.get_latest_articles(db, limit=limit)
-    except :
-        return []  # Renvoie une liste vide si aucun article n'est trouvé
+    try:
+        articles = crud.get_latest_articles(db, skip=skip, limit=limit)
+    except Exception as e:
+        print(f"[ERROR] Failed to fetch latest articles: {e}")
+        return schemas.NewsResponse(articles=[], clusters=[])
+    
+    try:
+        # Mettre à jour les résumés manquants en parallèle
+        updated_articles = await asyncio.gather(
+            *(crud.update_article_if_needed(db, article) for article in articles)
+        )
+    except Exception as e:
+        print(f"[ERROR] Failed to update article summaries: {e}")
+        updated_articles = articles  # Revenir aux articles non mis à jour
 
-    updated_articles = await asyncio.gather(
-        *(update_article_if_needed(db, article) for article in articles)
+    try:
+        # Effectuer le clustering et générer les résumés/titres des clusters en thread séparé
+        cluster_summaries = await asyncio.to_thread(workflow_query_cluster_and_summarize, updated_articles)
+    except Exception as e:
+        print(f"[ERROR] Failed to perform clustering and summarization: {e}")
+        cluster_summaries = {}
+    
+    # Préparer la réponse
+    clusters_json = []
+    for cluster_id, info in cluster_summaries.items():
+        # Convertir les articles du cluster en instances de schéma Pydantic
+        cluster_articles = [
+            schemas.Article(**article) for article in info.get("articles", [])
+        ]
+        clusters_json.append(
+            schemas.ClusterSummary(
+                cluster_id=cluster_id,
+                title=info.get("title", f"Cluster {cluster_id}"),
+                summary=info.get("summary", "No summary available."),
+                articles=cluster_articles
+            )
+        )
+    
+    response = schemas.NewsResponse(
+        articles=updated_articles,
+        clusters=clusters_json
     )
-
-    return [ArticleSchema.from_orm(article) for article in updated_articles]
+    
+    return response

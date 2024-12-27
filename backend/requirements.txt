@@ -16,3 +16,5 @@ langchain-community
 openai
 langchain-openai
 bs4
+scikit-learn
+pandas
