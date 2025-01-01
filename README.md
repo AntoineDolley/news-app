@@ -23,6 +23,7 @@ This project is a **FastAPI** application designed to fetch, cluster, and summar
 - **PostgreSQL**: Database for storing articles and embeddings.
 - **pgvector**: Extension for handling vector data in PostgreSQL.
 - **OpenAI API**: For embeddings and summarization.
+- **News API**: To retrieve news articles.
 
 ### Frontend
 - **React**: Frontend library for building the UI.
@@ -66,35 +67,15 @@ cd news-clustering
     ```env
     DATABASE_URL=postgresql://user:password@localhost/news_db
     OPENAI_API_KEY=your_openai_api_key
+    NEWS_API_KEY=your_news_api_key
+    SECRET_KEY=news-app
     ```
 
-2. Install dependencies:
-    ```bash
-    cd backend
-    pip install -r requirements.txt
-    ```
-
-3. Start the backend with Docker:
+Start the backend with Docker:
     ```bash
     docker-compose up --build
     ```
-
-### Frontend Setup
-1. Navigate to the `frontend/` directory:
-    ```bash
-    cd frontend
-    ```
-
-2. Install dependencies:
-    ```bash
-    npm install
-    ```
-
-3. Start the development server:
-    ```bash
-    npm start
-    ```
-
+    
 ---
 
 ## How It Works
@@ -118,34 +99,6 @@ cd news-clustering
 
 ---
 
-## Directory Structure
-
-```
-├── backend/
-│   ├── app/
-│   │   ├── routers/
-│   │   ├── models/
-│   │   ├── schemas/
-│   │   ├── crud.py
-│   │   ├── database.py
-│   │   ├── utils/
-│   │   └── main.py
-│   ├── Dockerfile
-│   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── App.js
-│   │   └── index.js
-│   ├── public/
-│   ├── Dockerfile
-│   └── package.json
-├── docker-compose.yml
-└── README.md
-```
-
----
-
 ## Screenshots
 
 ### Frontend Interface
@@ -165,12 +118,6 @@ cd news-clustering
 - **Advanced Search**: Support for advanced query operators.
 - **User Authentication**: Allow users to save and track articles or clusters.
 - **Dashboard**: Provide insights into trending topics and articles.
-
----
-
-## Contributing
-
-Contributions are welcome! Please fork the repository and submit a pull request.
 
 ---
 
