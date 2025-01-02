@@ -1,8 +1,13 @@
 /* src/App.css */
 
-/* Conteneur principal de l'application */
+/* src/App.css */
 .app-container {
-  gap: 20px; /* Espacement entre les colonnes */
-  height: 100vh; /* Prend toute la hauteur de la fenêtre */
-  background-color: #f4f4f4; /* Arrière-plan global */
+  display: flex;            /* 1) Permet le redimensionnement en hauteur */
+  flex-direction: column;   /* 2) Les enfants (dont le composant `News`) s'empilent verticalement */
+  gap: 20px; 
+  height: 100vh; 
+  background-color: #f4f4f4; 
+  margin: 0;               /* (Optionnel) Pour éviter des marges par défaut */
+  padding: 0;              /* (Optionnel) Pour bien coller sur toute la fenêtre */
 }
+  

@@ -8,6 +8,12 @@ import json
 from .utils.openai import generate_summary_and_title_async
 import asyncio
 
+def find_optimal_k(sse, k_range):
+    sse_diff = np.diff(sse)
+    sse_diff_2 = np.diff(sse_diff)
+    optimal_k_index = np.argmax(np.abs(sse_diff_2)) + 1
+    return k_range[optimal_k_index]
+
 def workflow_query_cluster_and_summarize(articles, k_range: range = range(2, 21)):
     data = []
     for art in articles:
@@ -75,7 +81,16 @@ def workflow_query_cluster_and_summarize(articles, k_range: range = range(2, 21)
             loop.close()
 
     cluster_summaries = perform_summarization(df)
-    return cluster_summaries
+
+    # Trier les clusters par importance (nombre d'articles par cluster)
+    sorted_clusters = sorted(
+        cluster_summaries.items(),
+        key=lambda item: len(item[1]['articles']),
+        reverse=True
+    )
+
+    # Retourner les clusters triés
+    return {k: v for k, v in sorted_clusters}
 
 def fix_ndarray_embeddings(embedding):
     """
